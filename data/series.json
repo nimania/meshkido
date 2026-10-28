@@ -224,7 +224,12 @@
           "name": "کانال رسمی فیلیمو — اعلام قسمت یازدهم",
           "url": "https://t.me/s/FILIMO"
         }
-      ]
+      ],
+      "artwork": {
+        "src": "https://image.tmdb.org/t/p/w600_and_h900_bestv2/aN7GQeEwZRVgPwDsfnHi05TgxNP.jpg",
+        "credit": "پوستر سریال کنکل، ثبت‌شده در TMDB",
+        "source": "https://www.themoviedb.org/tv/290331-cankel"
+      }
     },
     {
       "slug": "nimrokh",
@@ -262,7 +267,12 @@
           "name": "گزارش برنامه جمعه",
           "url": "https://vista.ir/2610/524/4darl/%D8%AC%D8%AF%D9%88%D9%84-%D8%A7%D9%86%D8%AA%D8%B4%D8%A7%D8%B1-%D8%B3%D8%B1%DB%8C%D8%A7%D9%84-%D9%87%D8%A7%DB%8C-%D9%86%D9%85%D8%A7%DB%8C%D8%B4-%D8%AE%D8%A7%D9%86%DA%AF%DB%8C-%D8%AC%D9%85%D8%B9%D9%87-%DB%B2%DB%B4-%D9%85%D9%87%D8%B1-%DB%B1%DB%B4%DB%B0%DB%B5-%E2%94%82-%D9%81%DB%8C%D9%84%DB%8C%D9%85%D9%88%D8%8C-%D9%81%DB%8C%D9%84%D9%85-%D9%86%D8%AA-%D9%88-%D8%B2%DB%8C-%D9%88%DB%8C%DA%98%D9%86-%DA%86%D9%87-%D9%82%D8%B3%D9%85%D8%AA-%D9%87%D8%A7%DB%8C%DB%8C-%D8%AF%D8%A7%D8%B1%D9%86%D8%AF"
         }
-      ]
+      ],
+      "artwork": {
+        "src": "https://artworks.thetvdb.com/banners/v4/series/482099/posters/6ab18b226bd11.jpg",
+        "credit": "پوستر سریال نیم‌رخ، آرشیو TheTVDB",
+        "source": "https://www.thetvdb.com/series/nm-rkh"
+      }
     },
     {
       "slug": "roshanaei-shab-2",
