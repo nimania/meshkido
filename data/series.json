@@ -312,9 +312,11 @@
         }
       ],
       "artwork": {
-        "src": "https://newsmedia.tasnimnews.ir/Tasnim/Uploaded/Image/1404/12/28/140412281057325136083454.jpg",
-        "credit": "تصویر معرفی مجموعه (فصل نخست)، تسنیم؛ پوستر اختصاصی فصل دوم نیست",
-        "source": "https://www.tasnimnews.ir/fa/news/1404/12/28/3544425/"
+        "src": "https://ynet-pic1.yit.co.il/picserver6/wcm_upload/2026/03/20/Hkvfssc911l/11.jpg",
+        "fallback": "https://newsmedia.tasnimnews.ir/Tasnim/Uploaded/Image/1404/12/28/140412281057325136083454.jpg",
+        "credit": "تصویر آرشیوی سریال روشنایی شب از فصل نخست؛ تصویر اختصاصی فصل دوم نیست",
+        "source": "https://www.ynetnews.com/culture/article/h1odl4o9zg",
+        "context": "آرشیوی از فصل نخست"
       }
     }
   ]
