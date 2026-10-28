@@ -41,7 +41,12 @@
           "name": "جزئیات داستان و انتشار",
           "url": "https://inteen.ir/%D9%87%D9%85%D9%87-%DA%86%DB%8C%D8%B2-%D8%AF%D8%B1%D8%A8%D8%A7%D8%B1%D9%87-%D8%B3%D8%B1%DB%8C%D8%A7%D9%84-%DB%8C%D9%84-%D8%AF%D8%A7%D8%B3%D8%AA%D8%A7%D9%86%D8%8C-%D8%A8%D8%A7%D8%B2%DB%8C/37876/"
         }
-      ]
+      ],
+      "artwork": {
+        "src": "https://titre12.ir/wp-content/uploads/2026/10/IMG_20261007_224850_552.jpg",
+        "credit": "تصویر تبلیغاتی فیلم‌نت، بازنشر تیتر۱۲",
+        "source": "https://titre12.ir/%D8%AC%D8%B2%D8%A6%DB%8C%D8%A7%D8%AA-%D8%B3%D8%B1%DB%8C%D8%A7%D9%84-%DB%8C%D9%8E%D9%84-%D8%A7%D8%B9%D9%84%D8%A7%D9%85-%D8%B4%D8%AF-%D9%BE%D8%AE%D8%B4-%D8%A7%D8%B2-%DB%B1%DB%B7-%D9%85/"
+      }
     },
     {
       "slug": "ostokhan-sooz",
@@ -80,7 +85,12 @@
           "name": "گزارش معرفی و بازیگران",
           "url": "https://safhesiasat.ir/%D8%A8%D8%AE%D8%B4-%D9%81%D8%B1%D9%87%D9%86%DA%AF%DB%8C-%D9%87%D9%86%D8%B1%DB%8C-6/14021-%D8%B3%D8%B1%DB%8C%D8%A7%D9%84-%D8%A7%D8%B3%D8%AA%D8%AE%D9%88%D8%A7%D9%86-%D8%B3%D9%88%D8%B2-%DA%86%D9%86%D8%AF-%D9%82%D8%B3%D9%85%D8%AA-%D8%AF%D8%A7%D8%B1%D8%AF-%D8%A8%D8%A7%D8%B2%DB%8C%DA%AF%D8%B1%D8%A7%D9%86"
         }
-      ]
+      ],
+      "artwork": {
+        "src": "https://titre12.ir/wp-content/uploads/2026/10/photo_2026-10-24_13-52-58.webp",
+        "credit": "پوستر/تصویر فیلم‌نت، بازنشر تیتر۱۲",
+        "source": "https://titre12.ir/%D8%B1%D9%88%D9%86%D9%85%D8%A7%DB%8C%DB%8C-%D8%A7%D8%B2-%D9%BE%D9%88%D8%B3%D8%AA%D8%B1-%D9%88-%D8%AA%DB%8C%D8%B2%D8%B1-%D8%A7%D8%B3%D8%AA%D8%AE%D9%88%D8%A7%D9%86-%D8%B3%D9%88%D8%B2-%D8%B3/"
+      }
     },
     {
       "slug": "sorkh-o-siah",
@@ -120,7 +130,12 @@
           "name": "گزارش انتشار قسمت اول",
           "url": "https://www.asianewsiran.com/fa/newsagency/42002/sorkh-siah-episode-one-premiere"
         }
-      ]
+      ],
+      "artwork": {
+        "src": "https://surkh-o-siyah.download/assets/img/series/poster.jpg",
+        "credit": "پوستر تبلیغاتی اثر، سازندگان / فیلیمو؛ بازنشر مرجع غیررسمی",
+        "source": "https://surkh-o-siyah.download/"
+      }
     },
     {
       "slug": "taxi",
@@ -159,7 +174,18 @@
           "name": "معرفی مجموعه و نویسندگان",
           "url": "https://www.honaronline.ir/%D8%A8%D8%AE%D8%B4-%D8%B3%DB%8C%D9%86%D9%85%D8%A7-6/208014-%D8%B3%D8%B1%D9%88%D8%B4-%D8%B5%D8%AD%D8%AA-%D8%A8%D8%A7-%D8%AA%D8%A7%DA%A9%D8%B3%DB%8C-%D8%A8%D9%87-%D9%86%D9%85%D8%A7%DB%8C%D8%B4-%D8%AE%D8%A7%D9%86%DA%AF%DB%8C-%D9%85%DB%8C-%D8%A2%DB%8C%D8%AF"
         }
-      ]
+      ],
+      "artwork": {
+        "src": "https://dl.filmdata.ir/filmdata/series/s937230106667/s937230106667-poster.webp?v=1792591449",
+        "credit": "پوستر معرفی، فیلم‌دیتا",
+        "source": "https://filmdata.ir/series/s937230106667"
+      },
+      "ratingSource": {
+        "name": "فیلم‌دیتا",
+        "url": "https://filmdata.ir/series/s937230106667",
+        "rating": null,
+        "note": "در زمان بررسی امتیاز عمومی ثبت نشده بود"
+      }
     },
     {
       "slug": "konkel",
@@ -180,10 +206,20 @@
       ],
       "director": "رامتین لوافی",
       "producer": "محمد مسعود",
-      "cast": [],
+      "cast": [
+        "صابر ابر",
+        "هانیه توسلی",
+        "مهدی پاکدل",
+        "پدرام شریفی",
+        "ستاره پسیانی"
+      ],
       "synopsis": "مجموعهٔ داستانی در حال انتشار فیلیمو؛ اطلاعات هر قسمت پس از تأیید منبع رسمی در پرونده درج می‌شود.",
       "color": "#526579",
       "sources": [
+        {
+          "name": "کانال رسمی فیلیمو — قسمت ۱۱",
+          "url": "https://t.me/s/FILIMO"
+        },
         {
           "name": "کانال رسمی فیلیمو — اعلام قسمت یازدهم",
           "url": "https://t.me/s/FILIMO"
@@ -264,7 +300,12 @@
           "name": "اعلام رسمی سیمافیلم به نقل از تسنیم",
           "url": "https://www.tasnimnews.ir/fa/news/1405/08/01/3730022/%D8%B4%D8%B1%D9%88%D8%B9-%D9%BE%D8%AE%D8%B4-%D9%81%D8%B5%D9%84-%D8%AF%D9%88%D9%85-%D8%B1%D9%88%D8%B4%D9%86%D8%A7%DB%8C%DB%8C-%D8%B4%D8%A8-%D8%A7%D8%B2-4-%D8%A2%D8%A8%D8%A7%D9%86-%D8%B1%D9%88%DB%8C%D8%A7-%D9%86%D9%88%D9%86%D9%87%D8%A7%D9%84%DB%8C-%D8%A8%D9%87-%D8%AA%D9%84%D9%88%DB%8C%D8%B2%DB%8C%D9%88%D9%86-%D8%A8%D8%B1%DA%AF%D8%B4%D8%AA"
         }
-      ]
+      ],
+      "artwork": {
+        "src": "https://newsmedia.tasnimnews.ir/Tasnim/Uploaded/Image/1404/12/28/140412281057325136083454.jpg",
+        "credit": "تصویر معرفی مجموعه (فصل نخست)، تسنیم؛ پوستر اختصاصی فصل دوم نیست",
+        "source": "https://www.tasnimnews.ir/fa/news/1404/12/28/3544425/"
+      }
     }
   ]
 }

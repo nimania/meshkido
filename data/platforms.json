@@ -1,0 +1,42 @@
+{
+  "فیلیمو": {
+    "color": "#e8ae28",
+    "text": "#211d16",
+    "logo": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f6/Filimo_logo_2025.png/330px-Filimo_logo_2025.png",
+    "logoSource": "https://commons.wikimedia.org/wiki/File:Filimo_logo_2025.png",
+    "website": "https://www.filimo.com",
+    "label": "فیلیمو"
+  },
+  "فیلم‌نت": {
+    "color": "#d43565",
+    "text": "#ffffff",
+    "logo": null,
+    "logoSource": null,
+    "website": "https://filmnet.ir",
+    "label": "فیلم‌نت"
+  },
+  "شیدا": {
+    "color": "#75475f",
+    "text": "#ffffff",
+    "logo": null,
+    "logoSource": null,
+    "website": "https://www.sheyda.com",
+    "label": "شیدا"
+  },
+  "زی‌ویژن": {
+    "color": "#2b7584",
+    "text": "#ffffff",
+    "logo": null,
+    "logoSource": null,
+    "website": null,
+    "label": "زی‌ویژن"
+  },
+  "شبکه یک": {
+    "color": "#315580",
+    "text": "#ffffff",
+    "logo": "https://upload.wikimedia.org/wikipedia/commons/a/a6/IRIB_TV1_Logo_%282025%29.svg",
+    "logoSource": "https://commons.wikimedia.org/wiki/File:IRIB_TV1_Logo_(2025).svg",
+    "website": "https://tv1.ir",
+    "label": "شبکه یک"
+  }
+}
