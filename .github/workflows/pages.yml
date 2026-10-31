@@ -3,6 +3,10 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    # GitHub-token commits from the news collector do not trigger push workflows.
+    # Deploy and deliver independently, after the three-hour news sweep at :17.
+    - cron: '47 */3 * * *'
 permissions:
   contents: write
   pages: write
@@ -41,7 +45,7 @@ jobs:
           MESHKIDO_TELEGRAM_CHAT: ${{ secrets.MESHKIDO_TELEGRAM_CHAT }}
         run: node scripts/telegram-publish.mjs
       - name: Persist Telegram delivery receipts
-        if: success()
+        if: ${{ !cancelled() }}
         run: |
           set -euo pipefail
           if [ ! -f data/telegram-posted.json ]; then exit 0; fi
