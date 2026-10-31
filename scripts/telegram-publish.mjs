@@ -94,6 +94,35 @@ async function main(){
    console.log('Telegram: bot/channel secrets not configured; no messages sent.');
    return;
  }
+ // A seeded archive should not leave a new channel completely empty.
+ // Publish exactly one clearly dated introductory news item; never repost the backlog.
+ if(!state.launchPostSentAt){
+   const lead=entries.filter(x=>x.type==='news'&&Date.now()-x.date<=14*24*HOUR)
+     .sort((a,b)=>b.date-a.date)[0];
+   if(lead){
+     const intro={...lead,label:'📰 آغاز خبررسانی مشکیدو | خبر آرشیوی '+new Date(lead.date).toISOString().slice(0,10)};
+     if(DRY){
+       console.log('DRY initial channel news post:\\n'+caption(intro));
+     }else{
+       let result=await post(intro);
+       if(!result.ok&&result.retry){
+         await new Promise(resolve=>setTimeout(resolve,(result.retry+1)*1000));
+         result=await post(intro);
+       }
+       if(!result.ok){
+         console.error('Initial MeshkiDo Telegram post failed:',result.code,result.error);
+         process.exitCode=1;
+         return;
+       }
+       state.launchPostSentAt=new Date().toISOString();
+       state.updated=state.launchPostSentAt;
+       await save(state);
+       console.log('Telegram: initial, dated source-linked news published.');
+     }
+   } else {
+     console.log('Telegram: no verified news from last 14 days for introductory post.');
+   }
+ }
  const posted=new Set(state.posted);
  // Only recent items; a backlog after an outage is deliberately limited to 72h.
  const recent=entries.filter(x=>!posted.has(x.id)&&Date.now()-x.date<72*HOUR).slice(0,MAX);
