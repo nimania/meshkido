@@ -78,7 +78,7 @@ def candidate(item, show, now):
     pub = clean(item.findtext("pubDate"))
     if not title_matches(headline, show) or publisher not in SOURCES:
         return None
-    if any(normalize(word) in normalize(headline) for word in BAD):
+    if any(normalize(word) in normalize(headline) for word in BAD + FOREIGN):
         return None
     parts = urllib.parse.urlsplit(url)
     if parts.scheme != "https" or parts.hostname not in ("news.google.com", "www.google.com"):
