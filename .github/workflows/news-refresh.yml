@@ -5,9 +5,13 @@ on:
     paths:
       - 'scripts/collect_news.py'
       - 'tests/test_news_collector.py'
+      - 'tests/test_news_expansion.py'
+      - 'scripts/news_expansion.py'
       - '.github/workflows/news-refresh.yml'
   schedule:
-    - cron: "17 */3 * * *"
+    # Official platforms hourly; specialized outlets every three hours.
+    - cron: "17 * * * *"
+    - cron: "23 */3 * * *"
   workflow_dispatch:
 
 permissions:
@@ -30,11 +34,13 @@ jobs:
         with:
           python-version: "3.11"
       - name: Validate news collector with offline tests
-        run: python -m unittest discover -s tests -p 'test_news_collector.py' -v
+        run: python -m unittest discover -s tests -p 'test_news*.py' -v
       - name: Collect sourced series news
+        env:
+          MODE: ${{ github.event_name != 'schedule' && 'all' || github.event.schedule == '17 * * * *' && 'official' || 'editorial' }}
         run: |
           set -o pipefail
-          python scripts/collect_news.py | tee "$RUNNER_TEMP/meshkido-news-result.json"
+          python scripts/collect_news.py --mode "$MODE" | tee "$RUNNER_TEMP/meshkido-news-result.json"
           {
             echo '### MeshkiDo verified news sweep'
             echo '```json'
@@ -49,14 +55,20 @@ jobs:
       - name: Publish only validated news changes
         run: |
           set -euo pipefail
-          if git diff --quiet -- data/updates.json; then
-            echo "No new verified news."
+          if git diff --quiet -- data/updates.json data/discovery-queue.json; then
+            echo "No new verified news or new series candidates."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/updates.json
-          git commit -m "data: refresh verified series news [skip ci]"
-          # The pages workflow must still receive a push event; [skip ci] would suppress it.
-          git commit --amend -m "data: refresh verified series news"
-          git push origin HEAD:main
+          git add data/updates.json data/discovery-queue.json
+          git commit -m "data: refresh verified series news and discovery queue"
+          for attempt in 1 2 3; do
+            if git pull --rebase --autostash origin main && git push origin HEAD:main; then
+              exit 0
+            fi
+            git rebase --abort 2>/dev/null || true
+            sleep $((attempt * 5))
+          done
+          echo "::error::Could not persist verified news; retry on next sweep."
+          exit 1
