@@ -5,8 +5,8 @@ on:
   workflow_dispatch:
   schedule:
     # GitHub-token commits from the news collector do not trigger push workflows.
-    # Deploy and deliver independently, after the three-hour news sweep at :17.
-    - cron: '47 */3 * * *'
+    # Deploy independently after hourly official and three-hour editorial sweeps.
+    - cron: '47 * * * *'
 permissions:
   contents: write
   pages: write
