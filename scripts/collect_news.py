@@ -59,7 +59,7 @@ def title_matches(headline, show):
     context = ("سریال", "مجموعه", "قسمت", "فصل", "تیزر", "پوستر",
                "تریلر", "بازیگر", "کارگردان", "تصویربرداری",
                "رونمایی", "پخش", "پشت صحنه", "سکانس")
-    return bool(re.search(r"(?<!\\w)" + re.escape(candidate) + r"(?!\\w)", title)) and (
+    return bool(re.search(r"(?<!\w)" + re.escape(candidate) + r"(?!\w)", title)) and (
         any(cue in title for cue in context)
     )
 
