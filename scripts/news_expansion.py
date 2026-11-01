@@ -159,6 +159,8 @@ def verified_post(record, show, source, now):
     label = re.sub(r"\s+", " ", relevant).strip(" \t-—•🎬📺")
     if not label:
         return None
+    if len(label) > 115:
+        label = label[:112].rsplit(" ", 1)[0].rstrip("،؛:— ") + "…"
     date_local = date.astimezone(dt.timezone(dt.timedelta(hours=3, minutes=30)))
     return {
         "date": date_local.date().isoformat(),
