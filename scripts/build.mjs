@@ -7,6 +7,7 @@ import crypto from 'node:crypto';
   const OUT='dist';
   const S=JSON.parse(fs.readFileSync('data/series.json','utf8'));
   const U=JSON.parse(fs.readFileSync('data/updates.json','utf8'));
+  const TR=JSON.parse(fs.readFileSync('data/tributes.json','utf8'));
   const E=JSON.parse(fs.readFileSync('data/episodes.json','utf8'));
   const P=JSON.parse(fs.readFileSync('data/platforms.json','utf8'));
   const V=JSON.parse(fs.readFileSync('data/pavaraghi.json','utf8'));
@@ -141,7 +142,17 @@ import crypto from 'node:crypto';
   fs.mkdirSync(path.join(OUT,'assets'),{recursive:true});
   fs.copyFileSync('assets/meshkido-logo.webp',path.join(OUT,'assets/meshkido-logo.webp'));
   fs.copyFileSync('assets/meshkido-favicon.png',path.join(OUT,'assets/meshkido-favicon.png'));
-  render('','مشکی‌دو | سریال‌های ایرانی در حال پخش','تقویم پخش، اخبار معتبر و معرفی سریال‌های ایرانی در حال پخش از نمایش خانگی و تلویزیون',home,'');
+  const tributeTeaser=TR.map(t=>`<section class="section-block"><div class="section-head"><div><span class="kicker">یادبود · خارج از خبرخوان سریال‌ها</span><h2>${esc(t.title)}</h2></div>${link('tributes/'+t.slug+'/','خواندن یادبود','text-link')}</div><p class="section-intro">${esc(t.summary)}</p></section>`).join('');
+  render('','مشکی‌دو | سریال‌های ایرانی در حال پخش','تقویم پخش، اخبار معتبر و معرفی سریال‌های ایرانی در حال پخش از نمایش خانگی و تلویزیون',home.replace('<section class="section-block">',tributeTeaser+'<section class="section-block">'),'');
+  for (const t of TR) {
+    if (!/^[a-z0-9-]+$/.test(t.slug)||!Array.isArray(t.paragraphs)||t.paragraphs.length<3||!t.sources?.every(s=>/^https:\/\//.test(s.url))) throw Error('Invalid memorial data');
+    const detail=`<div class="breadcrumbs">${link('','خانه')} <span>/</span> <span>یادبود</span></div>
+      <article class="editorial-article"><div class="editorial-article-head"><span class="kicker">یادبود · چهره‌های مرتبط با فرهنگ ایران</span><h1>${esc(t.title)}</h1><div class="editorial-meta"><span>${esc(t.dateFa)}</span></div><p class="editorial-lead">${esc(t.subtitle)}</p></div>
+      <div class="editorial-body">${t.paragraphs.map(p=>`<p>${esc(p)}</p>`).join('')}</div>
+      <div class="notice-box"><strong>منابع و روش</strong><p>${esc(t.sourceNote)}</p><ul class="sources-list">${t.sources.map(s=>`<li>${sourceLink(s)}</li>`).join('')}</ul></div>
+      <div class="editorial-article-foot">${link('news/','اخبار سریال‌ها','text-link')} <a class="text-link" href="https://pendar.io/reports/hamid-alidoosti-obituary-1405/">گزارش تفصیلی پندار ←</a></div></article>`;
+    render('tributes/'+t.slug,t.title,t.summary,detail,'');
+  }
   render('series','سریال‌های ایرانی در حال پخش','فهرست سریال‌های تازهٔ ایرانی همراه با بازیگران، کارگردان و برنامهٔ پخش',`<section class="page-heading"><div class="kicker">فهرست زنده</div><h1>سریال‌های در حال پخش</h1><p>فقط سریال‌های داستانی که پخش قسمت‌های تازه‌شان در دورهٔ پوشش تأیید شده است.</p></section>${filter()}<div class="poster-grid filtered-grid" id="series-list">${active.map(seriesCard).join('')}</div><div class="empty-result" id="series-empty" hidden>نتیجه‌ای پیدا نشد. جستجو یا فیلتر را تغییر دهید.</div>`,'series/');
   render('schedule','تقویم هفتگی سریال‌های ایرانی','روز و ساعت اعلام‌شدهٔ پخش سریال‌های ایرانی در حال انتشار',`<section class="page-heading"><div class="kicker">تقویم برنامه‌های اعلام‌شده</div><h1>تقویم هفتگی؛ هر روز، جداگانه</h1><p>روز و ساعت اعلام‌شدهٔ پخش در ${esc(S.checkedAtFa)}. تغییر برنامه یا عدم انتشار یک قسمت ممکن است؛ انتشار قطعی قسمت‌ها را جداگانه تأیید می‌کنیم.</p></section>${weeklyBoard()}<div class="notice-box"><strong>دربارهٔ ساعت‌ها</strong><p>تمام ساعت‌ها به وقت تهران است. در صورت نبود ساعت معتبر، فقط روز پخش درج شده است. هیچ شمارهٔ قسمت آینده‌ای از روی تقویم پیش‌بینی نشده است.</p></div>`,'schedule/');
   render('news','خبرهای سریال‌های ایرانی','خبرهای دارای منبع دربارهٔ سریال‌های ایرانی در حال پخش',`<section class="page-heading"><div class="kicker">خبرهای راستی‌آزمایی‌شده</div><h1>اتفاق‌های تازهٔ سریال‌ها</h1><p>خلاصه‌های کوتاه و مستقل از اعلام‌های معتبر. برای هر خبر، لینک منبع قابل مشاهده است.</p></section><div class="news-grid news-grid-full">${U.map(newsCard).join('')}</div><div class="notice-box"><strong>خبرهای منابع معتبر به‌صورت دوره‌ای گردآوری می‌شوند</strong><p>گردآوری خودکار هر سه ساعت یک بار انجام می‌شود. تیترهای گردآوری‌شده همراه نام رسانه و لینک منبع نمایش داده می‌شوند؛ تأیید انتشار قسمت جدید و پاورقی، فرایندی مستقل دارد.</p></div>`,'news/');
@@ -200,7 +211,7 @@ import crypto from 'node:crypto';
   const platforms=[...new Set(active.map(s=>s.platform))].sort((a,b)=>a.localeCompare(b,'fa'));
   render('platforms','پلتفرم‌ها و شبکه‌ها','فهرست رسانه‌ها و پلتفرم‌های دارای سریال جدید ایرانی',`<section class="page-heading"><div class="kicker">بسترهای انتشار</div><h1>پلتفرم‌ها و شبکه‌ها</h1><p>سریال‌های داستانی در حال پخش به تفکیک بستر انتشار؛ مسابقه و برنامهٔ گفت‌وگومحور در فاز اول پوشش داده نمی‌شود.</p></section>${platforms.map(p=>`<section class="section-block">${heading('پخش‌کننده',p)}<div class="poster-grid">${active.filter(s=>s.platform===p).map(seriesCard).join('')}</div></section>`).join('')}`,'platforms/');
   render('about','دربارهٔ مشکی‌دو و روش گردآوری','روش کار، محدودهٔ پوشش و معیارهای صحت اطلاعات سایت مشکی‌دو',`<section class="page-heading"><div class="kicker">دربارهٔ پروژه</div><h1>مشکی‌دو چیست؟</h1><p>یک پروژهٔ مستقل برای معرفی و پیگیری سریال‌های ایرانی با قسمت‌های تازه؛ الهام‌گرفته از روش داده‌محور مشکی‌مدیا.</p></section><div class="prose"><h2>فاز نخست</h2><p>پوشش سریال‌های داستانی در حال پخش در تلویزیون و نمایش خانگی. بازپخش مجموعه‌های قدیمی، فیلم، مسابقه، رئالیتی‌شو و تاک‌شو فعلاً در فهرست نیست.</p><h2>دقت پیش از سرعت</h2><p>برای هر سریال دست‌کم یک منبع ثبت می‌شود. روزهای هفتگی پخش از اطلاعیه‌های معتبر گرفته می‌شوند، اما به معنی تضمین انتشار هر قسمت در آینده نیستند. زمان انتشار، شماره قسمت، آمار بازدید و امتیاز مخاطبان بدون سند یا دادهٔ واقعی منتشر نمی‌شوند.</p><h2>آنچه هنوز فعال نیست</h2><p>پروندهٔ قسمت‌های تأییدشده و تقویم روزانه فعال‌اند. جمع‌آوری خودکار اخبار و قسمت‌ها، امتیازدهی کاربران و انتشار خودکار شبکه‌های اجتماعی هنوز فعال نشده‌اند؛ پاورقی‌ها فقط پس از کنترل تحریریه منتشر می‌شوند؛ آمار و شمارهٔ قسمت حدسی وارد نمی‌کنیم.</p><h2>اصلاحات و شفافیت</h2><p>آخرین راستی‌آزمایی محتوای اولیه ${esc(S.checkedAtFa)} انجام شده است. داده‌ها در مخزن عمومی سایت قرار دارند و لینک هر منبع در پروندهٔ مربوط ثبت شده است.</p><p><a class="primary-btn" href="https://github.com/nimania/meshkido" target="_blank" rel="noopener noreferrer">مشاهده مخزن پروژه ↗</a></p></div>`,'about/');
-  const urls=['', 'series/','schedule/','news/','actors/','platforms/','about/','pavaraghi/',...S.shows.map(s=>'pavaraghi/'+s.slug+'/'),...PA.filter(a=>a.status==='published').map(pavaraghiPath),...S.shows.map(s=>'series/'+s.slug+'/'),...EP.map(e=>episodePath(e)),...names.map(n=>'actors/'+actorId(n)+'/')];
+  const urls=['', 'series/','schedule/','news/','actors/','platforms/','about/','pavaraghi/',...S.shows.map(s=>'pavaraghi/'+s.slug+'/'),...PA.filter(a=>a.status==='published').map(pavaraghiPath),...S.shows.map(s=>'series/'+s.slug+'/'),...EP.map(e=>episodePath(e)),...names.map(n=>'actors/'+actorId(n)+'/'),...TR.map(t=>'tributes/'+t.slug+'/')];
   fs.writeFileSync(path.join(OUT,'sitemap.xml'),'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+urls.map(u=>'<url><loc>'+DOMAIN+href(u)+'</loc></url>').join('')+'</urlset>');
   fs.writeFileSync(path.join(OUT,'robots.txt'),'User-agent: *\nAllow: /\nSitemap: '+DOMAIN+href('sitemap.xml')+'\n');
   fs.mkdirSync(path.join(OUT,'data'),{recursive:true});
@@ -209,6 +220,7 @@ import crypto from 'node:crypto';
   fs.copyFileSync('data/episodes.json',path.join(OUT,'data/episodes.json'));
   fs.copyFileSync('data/platforms.json',path.join(OUT,'data/platforms.json'));
   fs.copyFileSync('data/pavaraghi.json',path.join(OUT,'data/pavaraghi.json'));
+  fs.copyFileSync('data/tributes.json',path.join(OUT,'data/tributes.json'));
   fs.writeFileSync(path.join(OUT,'.nojekyll'),'');
   console.log('Built '+urls.length+' pages, '+active.length+' active series, '+EP.length+' verified episodes, '+U.length+' updates.');
 })(fs,path,crypto);
