@@ -16,6 +16,8 @@ import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
 from pathlib import Path
+from scripts.news_expansion import (CHANNELS, normalize as normalize_discovery,
+    fetch_telegram, verified_post, discover_unknown, match_series)
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
@@ -121,6 +123,12 @@ PARTNER_SOURCES = (
      "section": "/mag/category/video", "feed": "https://www.namava.ir/mag/category/video/feed/"},
     {"name": "فیلم‌نت نیوز", "domain": "filmnet.ir",
      "section": "/news", "feed": "https://filmnet.ir/news/category/news/feed/"},
+    {"name": "فیلم‌نیوز", "domain": "filmnews.ir",
+     "section": "/", "feed": "https://www.filmnews.ir/feed/"},
+    {"name": "رسانه صبا", "domain": "sabanews.ir",
+     "section": "/", "feed": "https://sabanews.ir/feed/"},
+    {"name": "صبا خبر", "domain": "sabakhabar.ir",
+     "section": "/", "feed": "https://sabakhabar.ir/feed/"},
 )
 FOREIGN = ("سریال خارجی", "سریال کره ای", "سریال کره‌ای", "سریال ترکی",
            "سریال آمریکایی", "سریال هندی", "سریال اسپانیایی",
@@ -225,78 +233,193 @@ def partner_candidate(item, show, partner, now):
 def key(row):
     return (row.get("series"), normalize(row.get("title")))
 
-def collect(now=None, fetcher=rss_for):
+
+def partner_search_all(partner):
+    """One fallback query per blocked publisher, not one request per series."""
+    query = urllib.parse.urlencode({
+        "q": "site:" + partner["domain"] + " سریال",
+        "hl": "fa", "gl": "IR", "ceid": "IR:fa",
+    })
+    request = urllib.request.Request(GOOGLE_RSS + query,
+        headers={"User-Agent": "MeshkiDoNews/2.0"})
+    with urllib.request.urlopen(request, timeout=14) as response:
+        payload = response.read(1_500_001)
+    if len(payload) > 1_500_000:
+        raise ValueError("Search feed too large")
+    root = ET.fromstring(payload)
+    records = []
+    for item in root.findall(".//channel/item"):
+        source = item.find("source")
+        raw_domain = (source.get("url", "") if source is not None else "")
+        host = (urllib.parse.urlsplit(raw_domain).hostname or "").lower()
+        if host not in (partner["domain"], "www." + partner["domain"]):
+            continue
+        url = clean(item.findtext("link"))
+        target = urllib.parse.urlsplit(url)
+        if target.scheme != "https" or target.hostname not in ("news.google.com", "www.google.com"):
+            continue
+        records.append({"title": item.findtext("title"), "url": url,
+                        "published": item.findtext("pubDate"), "verified_domain": True})
+    return records
+
+def broad_series_search():
+    """Discover unfamiliar productions from already-approved news outlets."""
+    query = urllib.parse.urlencode({
+        "q": '"سریال" "نمایش خانگی" OR "سریال" "در حال تولید"',
+        "hl": "fa", "gl": "IR", "ceid": "IR:fa",
+    })
+    request = urllib.request.Request(GOOGLE_RSS + query,
+        headers={"User-Agent": "MeshkiDoNews/2.0"})
+    with urllib.request.urlopen(request, timeout=14) as response:
+        payload = response.read(1_500_001)
+    if len(payload) > 1_500_000:
+        raise ValueError("Broad discovery feed too large")
+    root = ET.fromstring(payload)
+    records = []
+    for item in root.findall(".//channel/item"):
+        source = item.find("source")
+        publisher = clean(source.text if source is not None else "")
+        if publisher not in SOURCES:
+            continue
+        url = clean(item.findtext("link"))
+        if urllib.parse.urlsplit(url).hostname not in ("news.google.com", "www.google.com"):
+            continue
+        title = clean(item.findtext("title"))
+        # Broad discovery is suggestions ONLY, never direct site publication.
+        if not ("سریال" in title and any(cue in title for cue in
+                ("ایران", "فیلیمو", "فیلم‌نت", "شبکه", "نمایش خانگی",
+                 "ساخت", "تولید", "تلویزیون", "پخش"))):
+            continue
+        records.append({"title": title, "url": url,
+                        "published": item.findtext("pubDate")})
+    return records
+
+def queue_key(row):
+    return normalize_discovery(row.get("title"))
+
+def collect(now=None, fetcher=rss_for, mode="all"):
     now = now or dt.datetime.now(UTC)
+    if mode not in ("all", "official", "editorial"):
+        raise ValueError("Unknown source mode")
     shows = json.loads((DATA / "series.json").read_text(encoding="utf8"))["shows"]
+    active = [show for show in shows if show.get("status") == "در حال پخش"]
     current = json.loads((DATA / "updates.json").read_text(encoding="utf8"))
     assert isinstance(current, list) and current, "Refusing to replace empty editorial archive"
+    queue_file = DATA / "discovery-queue.json"
+    existing_queue = json.loads(queue_file.read_text(encoding="utf8")) if queue_file.exists() else []
+    assert isinstance(existing_queue, list), "Invalid candidate queue"
+    queue = list(existing_queue)
+    seen_queue = {queue_key(r) for r in queue}
     known = {key(r) for r in current}
     found = []
     failures = []
     successes = 0
-    # Direct feeds are read only once per collection run.
-    partner_feeds = {}
-    for partner in PARTNER_SOURCES:
+    scanned = {"telegram": 0, "publisher": 0, "google": 0}
+    new_candidates = []
+
+    def add_post(row):
+        if row and key(row) not in known:
+            known.add(key(row))
+            found.append(row)
+
+    def discover(record, name):
+        for suggestion in discover_unknown(record, shows, {"name": name}, now):
+            normalized = queue_key(suggestion)
+            if normalized not in seen_queue:
+                seen_queue.add(normalized)
+                queue.append(suggestion)
+                new_candidates.append(suggestion)
+
+    # Official platforms are polled hourly; specialized newsrooms every 3h.
+    channels = [c for c in CHANNELS if mode == "all" or
+                (mode == "official" and c["kind"] == "official") or
+                (mode == "editorial" and c["kind"] == "editorial")]
+    for source in channels:
         try:
-            partner_feeds[partner["feed"]] = fetch_partner_feed(partner)
+            records = fetch_telegram(source)
+            if not records:
+                raise ValueError("No public messages parsed; channel may block access")
             successes += 1
+            scanned["telegram"] += len(records)
+            for record in records:
+                for show in active:
+                    add_post(verified_post(record, show, source, now))
+                discover(record, source["name"])
         except Exception as exc:
-            failures.append({"source": partner["name"], "error": type(exc).__name__ + ": " + str(exc)[:160]})
-    for show in shows:
-        if show.get("status") != "در حال پخش":
-            continue
+            failures.append({"source": source["name"], "error": type(exc).__name__ + ": " + str(exc)[:160]})
+
+    if mode != "official":
+        # One feed (or a single domain-restricted search) per publisher.
+        # A publisher outage never deletes previously verified editorial news.
         for partner in PARTNER_SOURCES:
-            direct = partner_feeds.get(partner["feed"], [])
-            for item in direct:
-                row = partner_candidate(item, show, partner, now)
-                if row and key(row) not in known:
-                    known.add(key(row))
-                    found.append(row)
-            if partner["feed"] not in partner_feeds:
+            try:
                 try:
-                    indexed = partner_search(show, partner)
-                    successes += 1
-                    for item in indexed:
-                        row = partner_candidate(item, show, partner, now)
-                        if row and key(row) not in known:
-                            known.add(key(row))
-                            found.append(row)
-                except Exception as exc:
-                    failures.append({"source": partner["name"], "series": show["slug"],
-                                     "error": type(exc).__name__ + ": " + str(exc)[:160]})
+                    records = fetch_partner_feed(partner)
+                except Exception:
+                    records = partner_search_all(partner)
+                successes += 1
+                scanned["publisher"] += len(records)
+                for record in records:
+                    for show in active:
+                        add_post(partner_candidate(record, show, partner, now))
+                    if from_partner_url(record.get("url", ""), partner) or record.get("verified_domain"):
+                        discover(record, partner["name"])
+            except Exception as exc:
+                failures.append({"source": partner["name"], "error": type(exc).__name__ + ": " + str(exc)[:160]})
+
+        for show in active:
+            try:
+                items = fetcher(show)
+                successes += 1
+                scanned["google"] += len(items)
+                for item in items:
+                    add_post(candidate(item, show, now))
+            except Exception as exc:
+                failures.append({"source": "گوگل نیوز", "series": show["slug"],
+                                 "error": type(exc).__name__ + ": " + str(exc)[:160]})
         try:
-            items = fetcher(show)
+            broad = broad_series_search()
             successes += 1
-            for item in items:
-                row = candidate(item, show, now)
-                if row and key(row) not in known:
-                    known.add(key(row))
-                    found.append(row)
+            scanned["google"] += len(broad)
+            for record in broad:
+                discover(record, "گوگل نیوز / رسانه تأییدشده")
         except Exception as exc:
-            failures.append({"series": show["slug"], "error": type(exc).__name__ + ": " + str(exc)[:160]})
+            failures.append({"source": "کشف سریال‌های تازه", "error": type(exc).__name__ + ": " + str(exc)[:160]})
+
     if successes == 0:
-        raise RuntimeError("Every source query failed; keeping previous content unchanged")
+        raise RuntimeError("Every requested source failed; preserving all previous data")
     found.sort(key=lambda row: row["publishedAt"], reverse=True)
-    # Existing human-edited entries always survive. Trim only older auto-discovered entries.
     manual = [row for row in current if not row.get("automated")]
     automatic = [row for row in current if row.get("automated")] + found[:MAX_NEW]
     automatic.sort(key=lambda row: row.get("publishedAt", ""), reverse=True)
-    merged = manual + automatic[:max(0, MAX_TOTAL-len(manual))]
+    merged = manual + automatic[:max(0, MAX_TOTAL - len(manual))]
     merged.sort(key=lambda row: row.get("publishedAt") or row.get("date", ""), reverse=True)
-    return current, merged, found[:MAX_NEW], failures, successes
+    queue.sort(key=lambda row: row.get("publishedAt", ""), reverse=True)
+    # Do not discard items awaiting review. Queue pruning is a deliberate human action.
+    return current, merged, found[:MAX_NEW], failures, successes, existing_queue, queue, new_candidates, scanned
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--mode", choices=("all", "official", "editorial"), default="all")
     args = parser.parse_args()
-    old, updated, new, errors, successes = collect()
-    print(json.dumps({"queries_ok": successes, "errors": errors, "new": len(new),
-                      "total": len(updated), "changed": updated != old}, ensure_ascii=False))
-    if not args.dry_run and updated != old:
-        path = DATA / "updates.json"
-        temporary = path.with_suffix(".tmp")
-        temporary.write_text(json.dumps(updated, ensure_ascii=False, indent=2) + "\n", encoding="utf8")
-        temporary.replace(path)
+    old, updated, new, errors, successes, old_queue, queue, new_candidates, scanned = collect(mode=args.mode)
+    print(json.dumps({
+        "mode": args.mode, "queries_ok": successes, "scanned": scanned,
+        "errors": errors, "new": len(new), "new_series_candidates": len(new_candidates),
+        "queue_total": len(queue), "total": len(updated),
+        "changed": updated != old, "queue_changed": queue != old_queue
+    }, ensure_ascii=False))
+    if not args.dry_run:
+        for changed, data, filename in (
+            (updated != old, updated, "updates.json"),
+            (queue != old_queue, queue, "discovery-queue.json"),
+        ):
+            if changed:
+                path = DATA / filename
+                temporary = path.with_suffix(".tmp")
+                temporary.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf8")
+                temporary.replace(path)
 
 if __name__ == "__main__":
     main()
