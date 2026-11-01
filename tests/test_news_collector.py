@@ -23,6 +23,18 @@ class NewsCollectorTests(unittest.TestCase):
         self.assertEqual(row["series"], "konkel")
         self.assertIn("قابل بررسی", row["summary"])
 
+    def test_series_editorial_headlines_without_word_serial(self):
+        self.assertIsNotNone(news.candidate(
+            self.item("تیزر «کنکل» منتشر شد", publisher="آخرین خبر"), self.show, self.now))
+        self.assertIsNotNone(news.candidate(
+            self.item("پوستر جدید کنکل رونمایی شد"), self.show, self.now))
+        self.assertIsNone(news.candidate(
+            self.item("خبر کنکل در حوزه حمل و نقل"), self.show, self.now))
+        self.assertIsNone(news.candidate(
+            self.item("فیلم سینمایی کنکل اکران شد"), self.show, self.now))
+        self.assertIsNone(news.candidate(
+            self.item("تیزر سریال خارجی کنکل منتشر شد"), self.show, self.now))
+
     def test_unrelated_or_unsourced_rejected(self):
         self.assertIsNone(news.candidate(self.item("خبر ترافیک تهران"), self.show, self.now))
         self.assertIsNone(news.candidate(self.item("خبر سریال کنکل", "سایت نامعتبر"), self.show, self.now))
