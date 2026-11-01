@@ -27,6 +27,7 @@ SOURCES = {
     "ایرنا", "خبرگزاری ایرنا", "خبرآنلاین", "سینماپرس",
     "بانی فیلم", "صبا", "روزنامه صبا", "فیلم نیوز", "فیلم‌نیوز",
     "فارس", "خبرگزاری فارس", "همشهری آنلاین", "برنا",
+    "آخرین خبر", "هنرآنلاین", "خبرگزاری صدا و سیما", "باشگاه خبرنگاران جوان",
 }
 BAD = ("دانلود رایگان", "لینک دانلود", "دانلود قسمت", "تماشای آنلاین رایگان",
        "قسمت کامل", "سریال ترکی", "دوبله فارسی", "زیرنویس فارسی")
@@ -53,9 +54,13 @@ def title_matches(headline, show):
     candidate = normalize(show["title"])
     if len(candidate) < 4:
         return False
-    # Distinguish generic titles such as Taxi from unrelated transportation news.
-    return bool(re.search(r"(?<!\w)" + re.escape(candidate) + r"(?!\w)", title)) and (
-        "سریال" in title or "مجموعه" in title or "قسمت" in title or "فصل" in title
+    # A named series plus an editorial context cue is required. Generic mentions
+    # of short titles such as "تاکسی" remain ineligible.
+    context = ("سریال", "مجموعه", "قسمت", "فصل", "تیزر", "پوستر",
+               "تریلر", "بازیگر", "کارگردان", "تصویربرداری",
+               "رونمایی", "پخش", "پشت صحنه", "سکانس")
+    return bool(re.search(r"(?<!\\w)" + re.escape(candidate) + r"(?!\\w)", title)) and (
+        any(cue in title for cue in context)
     )
 
 def rss_for(show):
