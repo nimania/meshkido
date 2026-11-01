@@ -1,5 +1,11 @@
 name: Refresh verified MeshkiDo news
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/collect_news.py'
+      - 'tests/test_news_collector.py'
+      - '.github/workflows/news-refresh.yml'
   schedule:
     - cron: "17 */3 * * *"
   workflow_dispatch:
@@ -26,7 +32,15 @@ jobs:
       - name: Validate news collector with offline tests
         run: python -m unittest discover -s tests -p 'test_news_collector.py' -v
       - name: Collect sourced series news
-        run: python scripts/collect_news.py
+        run: |
+          set -o pipefail
+          python scripts/collect_news.py | tee "$RUNNER_TEMP/meshkido-news-result.json"
+          {
+            echo '### MeshkiDo verified news sweep'
+            echo '```json'
+            cat "$RUNNER_TEMP/meshkido-news-result.json"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
