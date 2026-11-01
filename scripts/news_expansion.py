@@ -34,7 +34,7 @@ def normalize(value):
     value = html.unescape(str(value or "")).translate(FA_NUM)
     value = re.sub(r"[\u064b-\u065f\u0670]", "", value)
     value = value.replace("ي", "ی").replace("ك", "ک").replace("ۀ", "ه")
-    value = value.replace("\u200c", " ").replace("_", " ")
+    value = value.replace("\u200c", " ").replace("_", " ").replace("#", " ")
     return " ".join(value.casefold().split())
 
 def fresh(value, now, hours=72):
@@ -131,8 +131,11 @@ def match_series(text, show):
     pattern = re.compile(r"(?<!\w)" + re.escape(title) + r"(?!\w)")
     for match in pattern.finditer(body):
         around = body[max(0, match.start()-55):match.end()+55]
+        if "برنامه" in around and "سریال" not in around:
+            continue
         if len(title) <= 3:
-            if re.search(r"سریال\s+" + re.escape(title) + r"(?!\w)", around):
+            if re.search(r"(?:سریال|مجموعه)\s+[«\"']?" +
+                         re.escape(title) + r"(?!\w)", around):
                 return True
         elif any(cue in around for cue in EVENTS):
             return True
