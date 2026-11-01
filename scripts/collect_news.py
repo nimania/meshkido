@@ -16,7 +16,7 @@ import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from scripts.news_expansion import (CHANNELS, normalize as normalize_discovery,
+from news_expansion import (CHANNELS, normalize as normalize_discovery,
     fetch_telegram, verified_post, discover_unknown, match_series)
 
 ROOT = Path(__file__).resolve().parents[1]
