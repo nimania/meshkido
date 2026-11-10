@@ -39,8 +39,8 @@ SOURCES = {
 BAD = ("دانلود رایگان", "لینک دانلود", "دانلود قسمت", "تماشای آنلاین رایگان",
        "قسمت کامل", "سریال ترکی", "دوبله فارسی", "زیرنویس فارسی")
 MAX_AGE_HOURS = 72
-MAX_NEW = 18
-MAX_TOTAL = 220
+MAX_NEW = 60
+MAX_TOTAL = 600
 
 def clean(s):
     s = html.unescape(re.sub(r"<[^>]*>", " ", str(s or "")))
@@ -64,8 +64,10 @@ def title_matches(headline, show):
     # A named series plus an editorial context cue is required. Generic mentions
     # of short titles such as "تاکسی" remain ineligible.
     context = ("سریال", "مجموعه", "قسمت", "فصل", "تیزر", "پوستر",
-               "تریلر", "بازیگر", "کارگردان", "تصویربرداری",
-               "رونمایی", "پخش", "پشت صحنه", "سکانس")
+               "تریلر", "آنونس", "بازیگر", "کارگردان", "تصویربرداری",
+               "رونمایی", "پخش", "پشت صحنه", "پشت‌صحنه", "سکانس",
+               "تولید", "فیلمبرداری", "فیلم‌برداری", "نقش", "اکران",
+               "خبر", "مصاحبه", "زمان انتشار", "تمدید", "توقف", "پایان")
     return bool(re.search(r"(?<!\w)" + re.escape(candidate) + r"(?!\w)", title)) and (
         any(cue in title for cue in context)
     )
@@ -307,7 +309,7 @@ def collect(now=None, fetcher=rss_for, mode="all"):
     if mode not in ("all", "official", "editorial"):
         raise ValueError("Unknown source mode")
     shows = json.loads((DATA / "series.json").read_text(encoding="utf8"))["shows"]
-    active = [show for show in shows if show.get("status") == "در حال پخش"]
+    active = shows  # Cover productions, completed series and shows awaiting new seasons.
     current = json.loads((DATA / "updates.json").read_text(encoding="utf8"))
     assert isinstance(current, list) and current, "Refusing to replace empty editorial archive"
     queue_file = DATA / "discovery-queue.json"
