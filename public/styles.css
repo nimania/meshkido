@@ -90,3 +90,13 @@
 @media(max-width:930px){.editorial-grid{grid-template-columns:1fr}.pavaraghi-queue{grid-template-columns:1fr}}
 @media(max-width:700px){.editorial-card{grid-template-columns:104px minmax(0,1fr);min-height:180px}.editorial-cover .poster{min-height:180px}.editorial-info{padding:12px}.editorial-info h3{font-size:15px}.editorial-info p{font-size:11px}.editorial-stats{gap:8px}.editorial-stats>div{padding:13px 9px}.editorial-stats strong{font-size:25px}.editorial-stats span{font-size:10px}.pavaraghi-series-grid{grid-template-columns:1fr}.editorial-article-image .poster{height:225px}.editorial-body p{font-size:15px;line-height:2.3}.episode-card-photo{height:153px}.episode-hero-image .poster{height:250px}}
 @media(max-width:410px){.editorial-card{grid-template-columns:90px minmax(0,1fr)}.editorial-info h3{font-size:14px}.editorial-cover .poster strong{font-size:18px}.editorial-info p{font-size:10px}}
+
+
+/* Official trailers and photographs displayed in Telegram's public post widget. */
+.media-card{min-width:0;overflow:hidden}
+.telegram-media{width:100%;min-height:220px;margin:14px 0;padding:8px;border:1px solid var(--line);border-radius:14px;background:var(--soft);overflow:hidden}
+.telegram-media iframe{max-width:100%!important}
+.telegram-media .telegram-widget{max-width:100%}
+.media-fallback{font-size:12px;line-height:1.8;margin:10px 4px 0;color:var(--muted)}
+.media-fallback a{text-decoration:underline;text-underline-offset:3px}
+.media-card h3{overflow-wrap:anywhere}
