@@ -13,6 +13,7 @@ from html.parser import HTMLParser
 CHANNELS = (
     {"name": "فیلیمو (رسمی)", "username": "Filimo", "kind": "official"},
     {"name": "فیلم‌نت (رسمی)", "username": "filmnetofficial", "kind": "official"},
+    {"name": "نماوا (رسمی)", "username": "namava_ir", "kind": "official"},
     {"name": "فیلم‌نیوز", "username": "Film_News", "kind": "editorial"},
     {"name": "صبا", "username": "sabanews_ir", "kind": "editorial"},
 )
