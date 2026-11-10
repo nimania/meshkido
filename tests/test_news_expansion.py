@@ -30,6 +30,18 @@ class TelegramSeriesTests(unittest.TestCase):
         self.assertIn("سریال", record["summary"])
         self.assertEqual(record["source"], "https://t.me/Filimo/12345")
 
+    def test_multiline_official_teaser_caption(self):
+        record = {
+            "title": "این بار چه اتفاقی می‌افتد؟\\nتیزر قسمت پنجم\\n"
+                     "سریال «یَل»\\nجمعه‌ها در فیلم‌نت",
+            "published": "2026-11-01T12:00:00+00:00",
+            "url": "https://t.me/filmnetofficial/12345",
+        }
+        item = verified_post(record, SHOWS[1], CHANNELS[1], NOW)
+        self.assertIsNotNone(item)
+        self.assertIn("تیزر قسمت پنجم", item["title"])
+        self.assertIn("یَل", item["title"])
+
     def test_not_film_or_foreign_or_mention_in_unrelated_program(self):
         self.assertFalse(match_series("فیلم سینمایی «سرخ و سیاه» اکران شد", SHOWS[0]))
         self.assertFalse(match_series("قسمت ۲ سریال خارجی کنکل از نتفلیکس", SHOWS[2]))
