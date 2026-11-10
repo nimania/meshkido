@@ -311,6 +311,12 @@ def collect(now=None, fetcher=rss_for, mode="all"):
     shows = json.loads((DATA / "series.json").read_text(encoding="utf8"))["shows"]
     active = shows  # Cover productions, completed series and shows awaiting new seasons.
     current = json.loads((DATA / "updates.json").read_text(encoding="utf8"))
+    old_current = json.loads(json.dumps(current))
+    media_file = DATA / "media-feed.json"
+    existing_media = json.loads(media_file.read_text(encoding="utf8")) if media_file.exists() else []
+    old_media = json.loads(json.dumps(existing_media))
+    media_by_url = {row["source"]: row for row in existing_media if row.get("source")}
+    official_media = []
     assert isinstance(current, list) and current, "Refusing to replace empty editorial archive"
     queue_file = DATA / "discovery-queue.json"
     existing_queue = json.loads(queue_file.read_text(encoding="utf8")) if queue_file.exists() else []
@@ -324,10 +330,17 @@ def collect(now=None, fetcher=rss_for, mode="all"):
     scanned = {"telegram": 0, "publisher": 0, "google": 0}
     new_candidates = []
 
+    by_source = {row.get("source"): row for row in current}
     def add_post(row):
-        if row and key(row) not in known:
+        if not row:
+            return
+        previous = by_source.get(row.get("source"))
+        if previous and row.get("mediaType") and not previous.get("mediaType"):
+            previous["mediaType"] = row["mediaType"]
+        if key(row) not in known:
             known.add(key(row))
             found.append(row)
+            by_source[row.get("source")] = row
 
     def discover(record, name):
         for suggestion in discover_unknown(record, shows, {"name": name}, now):
@@ -349,8 +362,33 @@ def collect(now=None, fetcher=rss_for, mode="all"):
             successes += 1
             scanned["telegram"] += len(records)
             for record in records:
-                for show in active:
-                    add_post(verified_post(record, show, source, now))
+                verified = [verified_post(record, show, source, now) for show in active]
+                for post in verified:
+                    add_post(post)
+                # Public, original videos/photos of Iranian TV series can be
+                # viewed through Telegram's official post widget on MeshkiDo.
+                # Never promote generic ads, full episodes or unrelated films.
+                caption = record.get("title", "")
+                normalized = normalize_discovery(caption)
+                cues = ("تیزر", "آنونس", "تریلر", "پشت صحنه", "پشت‌صحنه",
+                        "پوستر", "معرفی سریال", "سریال", "قسمت")
+                forbidden = ("فیلم سینمایی", "دانلود", "قسمت کامل",
+                             "سریال خارجی", "سریال ترکی", "سریال کره",
+                             "دوبله فارسی", "رئالیتی شو", "مسابقه")
+                dated = partner_date(record.get("published"))
+                if (source["kind"] == "official"
+                        and record.get("mediaType") in ("video", "photo")
+                        and dated and fresh(dated, now)
+                        and any(normalize_discovery(x) in normalized for x in cues)
+                        and not any(normalize_discovery(x) in normalized for x in forbidden)
+                        and (any(verified) or "سریال" in normalized)):
+                    official_media.append({
+                        "source": record["url"], "sourceName": source["name"],
+                        "title": clean(caption)[:240],
+                        "mediaType": record["mediaType"],
+                        "series": next((p["series"] for p in verified if p), None),
+                        "publishedAt": dated.isoformat(),
+                    })
                 discover(record, source["name"])
         except Exception as exc:
             failures.append({"source": source["name"], "error": type(exc).__name__ + ": " + str(exc)[:160]})
@@ -395,6 +433,11 @@ def collect(now=None, fetcher=rss_for, mode="all"):
 
     if successes == 0:
         raise RuntimeError("Every requested source failed; preserving all previous data")
+    for item in official_media:
+        # A canonical public Telegram post URL is the stable media ID.
+        media_by_url[item["source"]] = item
+    media_feed = sorted(media_by_url.values(),
+                        key=lambda row: row.get("publishedAt", ""), reverse=True)[:400]
     found.sort(key=lambda row: row["publishedAt"], reverse=True)
     manual = [row for row in current if not row.get("automated")]
     automatic = [row for row in current if row.get("automated")] + found[:MAX_NEW]
@@ -403,24 +446,26 @@ def collect(now=None, fetcher=rss_for, mode="all"):
     merged.sort(key=lambda row: row.get("publishedAt") or row.get("date", ""), reverse=True)
     queue.sort(key=lambda row: row.get("publishedAt", ""), reverse=True)
     # Do not discard items awaiting review. Queue pruning is a deliberate human action.
-    return current, merged, found[:MAX_NEW], failures, successes, existing_queue, queue, new_candidates, scanned
+    return old_current, merged, found[:MAX_NEW], failures, successes, existing_queue, queue, new_candidates, scanned, old_media, media_feed
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--mode", choices=("all", "official", "editorial"), default="all")
     args = parser.parse_args()
-    old, updated, new, errors, successes, old_queue, queue, new_candidates, scanned = collect(mode=args.mode)
+    old, updated, new, errors, successes, old_queue, queue, new_candidates, scanned, old_media, media_feed = collect(mode=args.mode)
     print(json.dumps({
         "mode": args.mode, "queries_ok": successes, "scanned": scanned,
         "errors": errors, "new": len(new), "new_series_candidates": len(new_candidates),
         "queue_total": len(queue), "total": len(updated),
+        "media_total": len(media_feed), "media_changed": old_media != media_feed,
         "changed": updated != old, "queue_changed": queue != old_queue
     }, ensure_ascii=False))
     if not args.dry_run:
         for changed, data, filename in (
             (updated != old, updated, "updates.json"),
             (queue != old_queue, queue, "discovery-queue.json"),
+            (old_media != media_feed, media_feed, "media-feed.json"),
         ):
             if changed:
                 path = DATA / filename
