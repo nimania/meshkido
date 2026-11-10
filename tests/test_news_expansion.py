@@ -30,6 +30,26 @@ class TelegramSeriesTests(unittest.TestCase):
         self.assertIn("سریال", record["summary"])
         self.assertEqual(record["source"], "https://t.me/Filimo/12345")
 
+
+    def test_public_video_and_photo_are_marked_for_embedded_playback(self):
+        page = """
+        <div class="tgme_widget_message" data-post="filmnetofficial/2456">
+          <a class="tgme_widget_message_video_player" href="/video"></a>
+          <div class="tgme_widget_message_text">تیزر قسمت چهارم سریال «یَل»</div>
+          <time datetime="2026-11-01T12:00:00+00:00"></time>
+        </div>
+        <div class="tgme_widget_message" data-post="filmnetofficial/2457">
+          <a class="tgme_widget_message_photo_wrap" href="/photo"></a>
+          <div class="tgme_widget_message_text">پوستر سریال «یَل»</div>
+          <time datetime="2026-11-01T12:00:00+00:00"></time>
+        </div>
+        """
+        records = parse_telegram_html(CHANNELS[1], page)
+        self.assertEqual([r["mediaType"] for r in records], ["video", "photo"])
+        video = verified_post(records[0], SHOWS[1], CHANNELS[1], NOW)
+        self.assertEqual(video["mediaType"], "video")
+        self.assertEqual(video["source"], "https://t.me/filmnetofficial/2456")
+
     def test_multiline_official_teaser_caption(self):
         record = {
             "title": "این بار چه اتفاقی می‌افتد؟\\nتیزر قسمت پنجم\\n"
