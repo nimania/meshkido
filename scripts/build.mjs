@@ -95,7 +95,7 @@ import crypto from 'node:crypto';
     const show=bySlug.get(m.series);
     return '<article class="news-card media-card"><div class="news-top"><span class="news-date">'+esc((m.publishedAt||'').slice(0,10))+'</span><span class="news-platform">'+(m.mediaType==='video'?'▶ ویدئوی قابل‌تماشا':'◩ تصویر رسمی')+'</span></div>'+
       '<h3>'+esc(m.title)+'</h3><div class="telegram-media">'+
-      '<script async src="https://telegram.org/js/telegram-widget.js?22" data-telegram-post="'+esc(embedId)+'" data-width="100%"></script>'+
+      '<script async src="https://telegram.org/js/telegram-widget.js?24" data-telegram-post="'+esc(embedId)+'" data-width="100%"></script>'+
       '<p class="media-fallback"><a href="'+esc(m.source)+'" target="_blank" rel="noopener noreferrer">اگر پخش‌کننده نمایش داده نشد، رسانه را در منبع رسمی ببینید ↗</a></p></div>'+
       '<div class="news-bottom">'+(show?link('series/'+show.slug+'/', 'پروندهٔ '+show.title,'text-link'):'')+
       '<a href="'+esc(m.source)+'" target="_blank" rel="noopener noreferrer" class="text-link">منبع: '+esc(m.sourceName)+' ↗</a></div></article>';
