@@ -66,11 +66,19 @@ class PublicTelegramParser(HTMLParser):
         if tag == "div":
             self.depth += 1
             if attrs.get("data-post") and "tgme_widget_message" in attrs.get("class", ""):
-                self.current = {"post": attrs["data-post"], "text": [], "date": None}
+                self.current = {"post": attrs["data-post"], "text": [], "date": None, "mediaType": None}
                 self.wrapper_depth = self.depth
                 self.text_depth = None
             elif self.current is not None and "tgme_widget_message_text" in attrs.get("class", ""):
                 self.text_depth = self.depth
+        if self.current is not None:
+            classes = set(attrs.get("class", "").split())
+            # Telegram's public channel markup exposes media wrappers; do not
+            # guess from words such as "video" or from unrelated thumbnails.
+            if any("message_video" in c or "video_player" in c for c in classes):
+                self.current["mediaType"] = "video"
+            elif any("message_photo_wrap" in c for c in classes) and not self.current["mediaType"]:
+                self.current["mediaType"] = "photo"
         if self.current is not None and tag == "time" and attrs.get("datetime"):
             self.current["date"] = attrs["datetime"]
         if tag == "br" and self.current is not None and self.text_depth is not None:
@@ -109,6 +117,7 @@ def parse_telegram_html(source, page):
             "title": record["text"][:2000],
             "published": record["date"],
             "url": "https://t.me/" + source["username"] + "/" + number,
+            "mediaType": record.get("mediaType"),
         })
     return records
 
@@ -122,7 +131,30 @@ def fetch_telegram(source):
         payload = response.read(1_500_001)
     if len(payload) > 1_500_000:
         raise ValueError("Telegram page exceeds 1.5MB")
-    return parse_telegram_html(source, payload.decode("utf-8", "replace"))
+    records = parse_telegram_html(source, payload.decode("utf-8", "replace"))
+    # Look back a few public channel pages to recover teasers that rapidly
+    # disappear from the first page as a platform posts new promotions.
+    if source.get("kind") == "official" and records:
+        visited = {row["url"] for row in records}
+        for _ in range(3):
+            oldest = min(int(row["url"].rsplit("/", 1)[-1]) for row in records)
+            older_url = url + "?before=" + str(oldest)
+            try:
+                older_request = urllib.request.Request(older_url, headers={
+                    "User-Agent": "Mozilla/5.0 (compatible; MeshkiDoDiscovery/1.0)"})
+                with urllib.request.urlopen(older_request, timeout=14) as response:
+                    older_payload = response.read(1_500_001)
+                if len(older_payload) > 1_500_000:
+                    break
+                older = parse_telegram_html(source, older_payload.decode("utf-8", "replace"))
+                new = [row for row in older if row["url"] not in visited]
+                if not new:
+                    break
+                records.extend(new)
+                visited.update(row["url"] for row in new)
+            except Exception:
+                break  # Keep the successfully fetched recent posts.
+    return records
 
 def match_series(text, show):
     title = normalize(show["title"])
@@ -184,6 +216,7 @@ def verified_post(record, show, source, now):
         "source": record["url"],
         "sourceName": source["name"],
         "automated": True,
+        "mediaType": record.get("mediaType"),
         "publishedAt": date.isoformat(),
     }
 
