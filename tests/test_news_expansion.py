@@ -42,6 +42,17 @@ class TelegramSeriesTests(unittest.TestCase):
         self.assertIn("تیزر قسمت پنجم", item["title"])
         self.assertIn("یَل", item["title"])
 
+    def test_official_production_news_and_backstage(self):
+        record = {
+            "title": "خبر جدید از سریال «یَل»\\n"
+                     "گزارش پشت‌صحنه و مصاحبه با بازیگران",
+            "published": "2026-11-01T12:00:00+00:00",
+            "url": "https://t.me/filmnetofficial/12348",
+        }
+        item = verified_post(record, SHOWS[1], CHANNELS[1], NOW)
+        self.assertIsNotNone(item)
+        self.assertIn("یَل", item["title"])
+
     def test_not_film_or_foreign_or_mention_in_unrelated_program(self):
         self.assertFalse(match_series("فیلم سینمایی «سرخ و سیاه» اکران شد", SHOWS[0]))
         self.assertFalse(match_series("قسمت ۲ سریال خارجی کنکل از نتفلیکس", SHOWS[2]))
