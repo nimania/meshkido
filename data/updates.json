@@ -19,7 +19,8 @@
     "source": "https://t.me/filmnetofficial/10930",
     "sourceName": "فیلم‌نت (رسمی)",
     "automated": true,
-    "publishedAt": "2026-11-09T16:33:00+00:00"
+    "publishedAt": "2026-11-09T16:33:00+00:00",
+    "mediaType": "video"
   },
   {
     "date": "2026-11-09",
@@ -30,6 +31,19 @@
     "source": "https://t.me/Film_News/15045",
     "sourceName": "فیلم‌نیوز",
     "automated": true,
+    "publishedAt": "2026-11-09T06:33:52+00:00",
+    "mediaType": "photo"
+  },
+  {
+    "date": "2026-11-09",
+    "dateFa": "2026-11-09 (تهران)",
+    "series": "sorkh-o-siah",
+    "title": "در بسیاری از عاشقانه‌های سریال‌های ایرانی، جدایی فقط نتیجه اختلاف دو نفر نیست. گاهی کسی از بیرون وارد رابطه… | فیلم‌نیوز",
+    "summary": "«فیلم‌نیوز» اطلاعات تازه‌ای دربارهٔ سریال «سرخ و سیاه» منتشر کرده است. جزئیات در پیوند اصلی قابل بررسی است.",
+    "source": "https://t.me/Film_News/15045",
+    "sourceName": "فیلم‌نیوز",
+    "automated": true,
+    "mediaType": "photo",
     "publishedAt": "2026-11-09T06:33:52+00:00"
   },
   {
@@ -41,7 +55,8 @@
     "source": "https://t.me/filmnetofficial/10929",
     "sourceName": "فیلم‌نت (رسمی)",
     "automated": true,
-    "publishedAt": "2026-11-08T16:33:36+00:00"
+    "publishedAt": "2026-11-08T16:33:36+00:00",
+    "mediaType": "photo"
   },
   {
     "date": "2026-11-08",
@@ -52,6 +67,19 @@
     "source": "https://t.me/Filimo/20560",
     "sourceName": "فیلیمو (رسمی)",
     "automated": true,
+    "publishedAt": "2026-11-08T14:30:41+00:00",
+    "mediaType": "video"
+  },
+  {
+    "date": "2026-11-08",
+    "dateFa": "2026-11-08 (تهران)",
+    "series": "sorkh-o-siah",
+    "title": "کارگردان: آیدا پناهنده — سریال سرخ و سیاه، جمعه‌ها، به‎‌صورت اختصاصی در فیلیمو | فیلیمو (رسمی)",
+    "summary": "«فیلیمو (رسمی)» اطلاعات تازه‌ای دربارهٔ سریال «سرخ و سیاه» منتشر کرده است. جزئیات در پیوند اصلی قابل بررسی است.",
+    "source": "https://t.me/Filimo/20560",
+    "sourceName": "فیلیمو (رسمی)",
+    "automated": true,
+    "mediaType": "video",
     "publishedAt": "2026-11-08T14:30:41+00:00"
   },
   {
@@ -85,7 +113,8 @@
     "source": "https://t.me/filmnetofficial/10928",
     "sourceName": "فیلم‌نت (رسمی)",
     "automated": true,
-    "publishedAt": "2026-11-07T18:16:29+00:00"
+    "publishedAt": "2026-11-07T18:16:29+00:00",
+    "mediaType": "video"
   },
   {
     "date": "2026-11-07",
