@@ -155,6 +155,14 @@ def verified_post(record, show, source, now):
     title = normalize(show["title"])
     relevant = next((s for s in lines if title in normalize(s) and
                      any(cue in normalize(s) for cue in PUBLISH_EVENTS)), "")
+    # Official teaser captions commonly put "تیزر قسمت..." and the series
+    # title on separate lines. Keep the evidence together rather than dropping it.
+    if not relevant:
+        named = next((s for s in lines if title in normalize(s)), "")
+        if named:
+            nearby = [s for s in lines if any(cue in normalize(s) for cue in
+                      ("تیزر", "آنونس", "تریلر", "پوستر", "قسمت", "رونمایی"))]
+            relevant = " — ".join([nearby[0], named]) if nearby and nearby[0] != named else named
     if not relevant:
         return None
     label = re.sub(r"\s+", " ", relevant).strip(" \t-—•🎬📺")
