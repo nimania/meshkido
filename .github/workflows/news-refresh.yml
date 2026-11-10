@@ -55,7 +55,7 @@ jobs:
       - name: Publish only validated news changes
         run: |
           set -euo pipefail
-          if git diff --quiet -- data/updates.json data/discovery-queue.json; then
+          if git diff --quiet -- data/updates.json data/discovery-queue.json data/media-feed.json; then
             echo "No new verified news or new series candidates."
             exit 0
           fi
